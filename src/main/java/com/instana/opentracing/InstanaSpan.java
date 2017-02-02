@@ -81,27 +81,25 @@ public class InstanaSpan implements Span, SpanContext {
 
     @Override
     public Span log(Map<String, ?> fields) {
-        return log(NO_TIME, fields);
+        return log(System.currentTimeMillis(), fields);
     }
 
     @Override
     public Span log(long timestampMicroseconds, Map<String, ?> fields) {
         for (Map.Entry<String, ?> entry : fields.entrySet()) {
-            if (entry.getValue() != null) {
-                setTag(entry.getKey(), entry.getValue().toString());
-            }
+           log(timestampMicroseconds, entry.getKey(), entry.getValue());
         }
         return this;
     }
 
     @Override
     public Span log(String event) {
-        return log(System.currentTimeMillis(), event);
+        return log(System.currentTimeMillis(), event, event);
     }
 
     @Override
     public Span log(long timestampMicroseconds, String event) {
-        return setTag("event-" + timestampMicroseconds, event);
+        return log(timestampMicroseconds, event, event);
     }
 
     @Override
@@ -122,11 +120,14 @@ public class InstanaSpan implements Span, SpanContext {
 
     @Override
     public Span log(String eventName, Object payload) {
-        return this;
+        return log(System.currentTimeMillis(), eventName, payload);
     }
 
     @Override
     public Span log(long timestampMicroseconds, String eventName, Object payload) {
-        return this;
+        if (payload == null) {
+          return this;
+        }
+        return setTag("log." + timestampMicroseconds + "." + eventName, payload.toString());
     }
 }

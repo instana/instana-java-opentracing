@@ -4,7 +4,7 @@
 
     <groupId>com.instana</groupId>
     <artifactId>instana-java-opentracing</artifactId>
-    <version>0.20.3-SNAPSHOT</version>
+    <version>0.20.7-SNAPSHOT</version>
 
     <name>Instana - Java Open Tracing</name>
     <description>Implementation of the opentracing.io API that is monitored by Instana.</description>
@@ -39,7 +39,7 @@
         <dependency>
             <groupId>io.opentracing</groupId>
             <artifactId>opentracing-api</artifactId>
-            <version>0.20.2</version>
+            <version>0.20.7</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
