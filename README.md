@@ -8,7 +8,7 @@ The artifact is available on Maven Central. When using Maven you can include the
 <dependency>
   <groupId>com.instana</groupId>
   <artifactId>instana-java-opentracing</artifactId>
-  <version>0.20.2</version>
+  <version>0.20.7</version>
 </dependency>
 ```
 
