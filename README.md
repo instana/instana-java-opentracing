@@ -22,4 +22,14 @@ io.opentracing.Tracer tracer = InstanaTracerFactory.create();
 ```
 The Instana tracer supports context propagation using all of OpenTracing's built-in formats, i.e. `TextMap`, HTTP headers and `ByteBuffer`.
 
-When the Instana monitoring agent is not attached, the Instana OpenTracing API will act as an inactive tracer, similarly to the [OpenTracing noop-tracer](https://github.com/opentracing/opentracing-java/tree/master/opentracing-noop).
+When the Instana monitoring agent is not attached, the Instana OpenTracing API will act as an inactive tracer, similarly to the [OpenTracing noop-tracer](https://github.com/opentracing/opentracing-java/tree/master/opentracing-noop). To activate opentracing you must activate it in the agent configuation:
+
+```
+# Java Tracing
+com.instana.plugin.javatrace:
+  instrumentation:
+    # Lightweight Bytecode Instrumentation, enabled by default
+    enabled: true
+    # OpenTracing instrumentation, disabled by default
+    opentracing: true
+```
