@@ -1,19 +1,48 @@
 package com.instana.opentracing;
 
-import io.opentracing.SpanContext;
-import io.opentracing.Tracer;
+import io.opentracing.*;
 import io.opentracing.propagation.Format;
 import io.opentracing.propagation.TextMap;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
 
+/**
+ * A tracer that becomes active when using Instana OpenTracing.
+ */
 public class InstanaTracer implements Tracer {
 
-    static Tracer INSTANCE = new InstanaTracer();
+    private final ActiveSpanSource activeSpanSource;
 
+    /**
+     * Creates a new Instana tracer with an {@link ActiveSpanSource} that does not support setting an active span.
+     */
+    public InstanaTracer() {
+        this(new UnsupportedActiveSpanSource());
+    }
+
+    /**
+     * Creates a new Instana tracer.
+     *
+     * @param activeSpanSource The active span source to use.
+     */
+    public InstanaTracer(ActiveSpanSource activeSpanSource) {
+        this.activeSpanSource = activeSpanSource;
+    }
+
+    @Override
     public SpanBuilder buildSpan(String operationName) {
-        return new InstanaSpanBuilder(operationName);
+        return new InstanaSpanBuilder(activeSpanSource, operationName);
+    }
+
+    @Override
+    public ActiveSpan activeSpan() {
+        return activeSpanSource.activeSpan();
+    }
+
+    @Override
+    public ActiveSpan makeActive(Span span) {
+        return activeSpanSource.makeActive(span);
     }
 
     @Override

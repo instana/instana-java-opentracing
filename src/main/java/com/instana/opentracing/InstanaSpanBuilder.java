@@ -1,9 +1,6 @@
 package com.instana.opentracing;
 
-import io.opentracing.References;
-import io.opentracing.Span;
-import io.opentracing.SpanContext;
-import io.opentracing.Tracer;
+import io.opentracing.*;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -11,15 +8,20 @@ import java.util.Map;
 
 public class InstanaSpanBuilder implements Tracer.SpanBuilder {
 
+    private final ActiveSpanSource activeSpanSource;
+
     private final String operationName;
 
     private final Map<String, String> tags;
+
+    private boolean ignoreActiveSpan;
 
     private SpanContext parentContext;
 
     private long startTime;
 
-    InstanaSpanBuilder(String operationName) {
+    InstanaSpanBuilder(ActiveSpanSource activeSpanSource, String operationName) {
+        this.activeSpanSource = activeSpanSource;
         this.operationName = operationName;
         tags = new HashMap<String, String>();
     }
@@ -31,8 +33,14 @@ public class InstanaSpanBuilder implements Tracer.SpanBuilder {
     }
 
     @Override
-    public Tracer.SpanBuilder asChildOf(Span parent) {
+    public Tracer.SpanBuilder asChildOf(BaseSpan<?> parent) {
         return asChildOf(parent.context());
+    }
+
+    @Override
+    public Tracer.SpanBuilder ignoreActiveSpan() {
+        ignoreActiveSpan = true;
+        return this;
     }
 
     @Override
@@ -79,6 +87,16 @@ public class InstanaSpanBuilder implements Tracer.SpanBuilder {
         return InstanaNoopSpan.INSTANCE;
     }
 
+    @Override
+    public Span startManual() {
+        return start();
+    }
+
+    @Override
+    public ActiveSpan startActive() {
+        return activeSpanSource.makeActive(start());
+    }
+
     @SuppressWarnings("unused")
     public Span doStart(Object dispatcher) {
         Span span = new InstanaSpan(dispatcher, baggageItems()).considerStart(startTime).setOperationName(operationName);
@@ -88,10 +106,15 @@ public class InstanaSpanBuilder implements Tracer.SpanBuilder {
         return span;
     }
 
-    @Override
-    public Iterable<Map.Entry<String, String>> baggageItems() {
-        return parentContext == null
-                ? Collections.<String, String>emptyMap().entrySet()
-                : parentContext.baggageItems();
+    private Iterable<Map.Entry<String, String>> baggageItems() {
+        if (parentContext != null) { // prefer explicit parent
+            return parentContext.baggageItems();
+        } else if (!ignoreActiveSpan) {
+            ActiveSpan activeSpan = activeSpanSource.activeSpan();
+            if (activeSpan != null) {
+                return activeSpan.context().baggageItems();
+            }
+        }
+        return Collections.<String, String>emptyMap().entrySet();
     }
 }

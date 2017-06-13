@@ -29,10 +29,6 @@ class InstanaNoopSpan implements Span, SpanContext {
     }
 
     @Override
-    public void close() {
-    }
-
-    @Override
     public Span setTag(String key, String value) {
         return this;
     }

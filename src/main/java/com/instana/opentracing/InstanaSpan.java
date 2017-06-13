@@ -10,6 +10,7 @@ public class InstanaSpan implements Span, SpanContext {
 
     private static final long NO_TIME = 0L;
 
+    @SuppressWarnings("unused")
     private final Object dispatcher;
 
     private final Map<String, String> baggageItems;
@@ -22,10 +23,6 @@ public class InstanaSpan implements Span, SpanContext {
                 this.baggageItems.put(baggageItem.getKey(), baggageItem.getValue());
             }
         }
-    }
-
-    public Map<String, String> getBaggageItems() {
-        return baggageItems;
     }
 
     @SuppressWarnings("unused")
@@ -58,10 +55,6 @@ public class InstanaSpan implements Span, SpanContext {
 
     @Override
     public void finish(long finishMicros) {
-    }
-
-    @Override
-    public void close() {
     }
 
     @Override
