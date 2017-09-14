@@ -28,13 +28,18 @@ public class InstanaSpanBuilder implements Tracer.SpanBuilder {
 
     @Override
     public Tracer.SpanBuilder asChildOf(SpanContext parent) {
-        parentContext = parent;
+        if (parent != null) {
+            parentContext = parent;
+        }
         return this;
     }
 
     @Override
     public Tracer.SpanBuilder asChildOf(BaseSpan<?> parent) {
-        return asChildOf(parent.context());
+        if (parent != null) {
+            parentContext = parent.context();
+        }
+        return this;
     }
 
     @Override
@@ -45,7 +50,7 @@ public class InstanaSpanBuilder implements Tracer.SpanBuilder {
 
     @Override
     public Tracer.SpanBuilder addReference(String referenceType, SpanContext referencedContext) {
-        if (referenceType.equals(References.CHILD_OF)) {
+        if (References.CHILD_OF.equals(referenceType)) {
             return asChildOf(referencedContext);
         } else {
             return this;
