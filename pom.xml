@@ -4,7 +4,7 @@
 
     <groupId>com.instana</groupId>
     <artifactId>instana-java-opentracing</artifactId>
-    <version>0.30.2-SNAPSHOT</version>
+    <version>0.30.2</version>
 
     <name>Instana - Java Open Tracing</name>
     <description>Implementation of the opentracing.io API that is monitored by Instana.</description>
@@ -32,7 +32,7 @@
         <connection>scm:git:git://github.com/instana/instana-java-opentracing.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/instana/instana-java-opentracing.git</developerConnection>
         <url>https://github.com/instana/instana-java-opentracing</url>
-        <tag>HEAD</tag>
+        <tag>instana-java-opentracing-0.30.2</tag>
     </scm>
 
     <dependencies>
