@@ -52,6 +52,9 @@ public class InstanaSpanBuilder implements Tracer.SpanBuilder {
     public Tracer.SpanBuilder addReference(String referenceType, SpanContext referencedContext) {
         if (References.CHILD_OF.equals(referenceType)) {
             return asChildOf(referencedContext);
+        } else if (References.FOLLOWS_FROM.equals(referenceType)) {
+            // TODO: Currently the FOLLOWS_FROM semantic is not fully supported, but its better to have CHILD_OF than nothing
+            return asChildOf(referencedContext);
         } else {
             return this;
         }
