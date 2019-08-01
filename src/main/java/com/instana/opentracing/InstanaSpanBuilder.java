@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.opentracing.References;
-import io.opentracing.Scope;
 import io.opentracing.ScopeManager;
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
@@ -110,16 +109,6 @@ public class InstanaSpanBuilder implements Tracer.SpanBuilder {
     return InstanaNoopSpan.INSTANCE;
   }
 
-  @Override
-  public Span startManual() {
-    return start();
-  }
-
-  @Override
-  public Scope startActive(boolean finishSpanOnClose) {
-    return scopeManager.activate(start(), finishSpanOnClose);
-  }
-
   @SuppressWarnings("unused")
   public Span doStart(Object dispatcher) {
     Span span = new InstanaSpan(dispatcher, baggageItems()).considerStart(startTime).setOperationName(operationName);
@@ -133,9 +122,9 @@ public class InstanaSpanBuilder implements Tracer.SpanBuilder {
     if (parentContext != null) { // prefer explicit parent
       return parentContext.baggageItems();
     } else if (!ignoreActiveSpan) {
-      Scope scope = scopeManager.active();
-      if (scope != null) {
-        return scope.span().context().baggageItems();
+      Span span = scopeManager.activeSpan();
+      if (span != null) {
+        return span.context().baggageItems();
       }
     }
     return Collections.<String, String> emptyMap().entrySet();

@@ -8,11 +8,11 @@ The artifact is available on Maven Central. When using Maven you can include the
 <dependency>
   <groupId>com.instana</groupId>
   <artifactId>instana-java-opentracing</artifactId>
-  <version>0.32.0</version>
+  <version>0.33.0</version>
 </dependency>
 ```
 
-The older 0.20.7, 0.30.3 and 0.31.0 are also available.
+The older 0.20.7, 0.30.3, 0.31.0 and 0.32.0 are also available.
 
 The implementation's version number follows the [OpenTracing API version](https://github.com/opentracing/opentracing-java) that it implements.
 

@@ -67,12 +67,7 @@ public class InstanaTracer implements Tracer {
 
   @Override
   public Span activeSpan() {
-    Scope active = scopeManager.active();
-    if (active == null) {
-      return null;
-    } else {
-      return active.span();
-    }
+    return scopeManager.activeSpan();
   }
 
   @Override
