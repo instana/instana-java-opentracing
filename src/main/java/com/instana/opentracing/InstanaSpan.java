@@ -5,6 +5,7 @@ import java.util.Map;
 
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
+import io.opentracing.tag.Tag;
 
 public class InstanaSpan implements Span, SpanContext {
 
@@ -73,6 +74,14 @@ public class InstanaSpan implements Span, SpanContext {
   }
 
   @Override
+  public <T> Span setTag(Tag<T> key, T value) {
+    if (key != null && value != null) {
+      setTag(key.getKey(), value.toString());
+    }
+    return this;
+  }
+
+  @Override
   public Span log(Map<String, ?> fields) {
     return log(System.currentTimeMillis(), fields);
   }
@@ -117,4 +126,15 @@ public class InstanaSpan implements Span, SpanContext {
     }
     return setTag("log." + timestampMicroseconds + "." + eventName, payload.toString());
   }
+
+  @Override
+  public String toSpanId() {
+    return "";
+  }
+
+  @Override
+  public String toTraceId() {
+    return "";
+  }
+
 }

@@ -14,6 +14,7 @@ import org.junit.Test;
 
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
+import io.opentracing.propagation.BinaryAdapters;
 import io.opentracing.propagation.Format;
 import io.opentracing.propagation.TextMap;
 
@@ -78,7 +79,8 @@ public class InstanaTracerTest {
     byteBuffer.put(value);
     byteBuffer.put(ByteBufferContext.NO_ENTRY);
     byteBuffer.flip();
-    SpanContext spanContext = tracer.extract(Format.Builtin.BINARY, byteBuffer);
+    SpanContext spanContext = tracer.extract(Format.Builtin.BINARY_EXTRACT,
+        BinaryAdapters.extractionCarrier(byteBuffer));
     Iterator<Map.Entry<String, String>> iterator = spanContext.baggageItems().iterator();
     assertThat(iterator.hasNext(), is(true));
     Map.Entry<String, String> entry = iterator.next();
@@ -93,7 +95,7 @@ public class InstanaTracerTest {
     spanContext.map.put("foo", "quxbaz");
     byte[] key = "foo".getBytes(ByteBufferContext.CHARSET), value = "quxbaz".getBytes(ByteBufferContext.CHARSET);
     ByteBuffer byteBuffer = ByteBuffer.allocate(2 + 2 * 4 + key.length + value.length);
-    tracer.inject(spanContext, Format.Builtin.BINARY, byteBuffer);
+    tracer.inject(spanContext, Format.Builtin.BINARY_INJECT, BinaryAdapters.injectionCarrier(byteBuffer));
     byteBuffer.flip();
     assertThat(byteBuffer.get(), is((byte) 1));
     assertThat(byteBuffer.getInt(), is(key.length));
@@ -121,6 +123,16 @@ public class InstanaTracerTest {
     @Override
     public Iterable<Map.Entry<String, String>> baggageItems() {
       return map.entrySet();
+    }
+
+    @Override
+    public String toSpanId() {
+      return "";
+    }
+
+    @Override
+    public String toTraceId() {
+      return "";
     }
   }
 

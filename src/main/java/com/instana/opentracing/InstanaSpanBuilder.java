@@ -10,6 +10,8 @@ import io.opentracing.ScopeManager;
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
+import io.opentracing.Tracer.SpanBuilder;
+import io.opentracing.tag.Tag;
 
 public class InstanaSpanBuilder implements Tracer.SpanBuilder {
 
@@ -85,6 +87,14 @@ public class InstanaSpanBuilder implements Tracer.SpanBuilder {
   public Tracer.SpanBuilder withTag(String key, Number value) {
     if (key != null && value != null) {
       tags.put(key, value.toString());
+    }
+    return this;
+  }
+
+  @Override
+  public <T> SpanBuilder withTag(Tag<T> key, T value) {
+    if (key != null && value != null) {
+      tags.put(key.getKey(), value.toString());
     }
     return this;
   }

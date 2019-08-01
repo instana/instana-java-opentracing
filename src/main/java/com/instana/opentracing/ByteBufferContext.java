@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.opentracing.SpanContext;
+import io.opentracing.propagation.BinaryExtract;
 
 class ByteBufferContext implements SpanContext {
 
@@ -15,8 +16,8 @@ class ByteBufferContext implements SpanContext {
 
   private final ByteBuffer byteBuffer;
 
-  ByteBufferContext(ByteBuffer byteBuffer) {
-    this.byteBuffer = byteBuffer;
+  ByteBufferContext(BinaryExtract carrier) {
+    this.byteBuffer = carrier.extractionBuffer();
   }
 
   @Override
@@ -29,5 +30,15 @@ class ByteBufferContext implements SpanContext {
       baggageItems.put(new String(key, CHARSET), new String(value, CHARSET));
     }
     return baggageItems.entrySet();
+  }
+
+  @Override
+  public String toSpanId() {
+    return "";
+  }
+
+  @Override
+  public String toTraceId() {
+    return "";
   }
 }
