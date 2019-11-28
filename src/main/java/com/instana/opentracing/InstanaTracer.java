@@ -119,20 +119,30 @@ public class InstanaTracer implements Tracer {
 
   @Override
   public <C> SpanContext extract(Format<C> format, C carrier) {
+    SpanContext spanContext = extractContext(format, carrier);
+    if ("".equals(spanContext.toTraceId())) {
+      return null;
+    }
+    return spanContext;
+  }
+
+  <C> SpanContext extractContext(Format<C> format, C carrier) {
+    SpanContext spanContext;
     if (format.equals(Format.Builtin.TEXT_MAP) || format.equals(Format.Builtin.TEXT_MAP_EXTRACT)
         || format.equals(Format.Builtin.HTTP_HEADERS)) {
       if (!(carrier instanceof TextMapExtract)) {
         throw new IllegalArgumentException("Unsupported payload: " + carrier);
       }
-      return new TextMapContext((TextMapExtract) carrier);
+      spanContext = new TextMapContext((TextMapExtract) carrier);
     } else if (format.equals(Format.Builtin.BINARY) || format.equals(Format.Builtin.BINARY_EXTRACT)) {
       if (!(carrier instanceof BinaryExtract)) {
         throw new IllegalArgumentException("Unsupported payload: " + carrier);
       }
-      return new ByteBufferContext((BinaryExtract) carrier);
+      spanContext = new ByteBufferContext((BinaryExtract) carrier);
     } else {
       throw new IllegalArgumentException("Unsupported format: " + format);
     }
+    return spanContext;
   }
 
   @Override

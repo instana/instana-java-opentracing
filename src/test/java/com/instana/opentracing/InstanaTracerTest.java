@@ -20,13 +20,13 @@ import io.opentracing.propagation.TextMap;
 
 public class InstanaTracerTest {
 
-  private Tracer tracer = new InstanaTracer();
+  private InstanaTracer tracer = new InstanaTracer();
 
   @Test
   public void testTextMapExtraction() throws Exception {
     MapTextMap textMap = new MapTextMap();
     textMap.put("foo", "bar");
-    SpanContext spanContext = tracer.extract(Format.Builtin.TEXT_MAP, textMap);
+    SpanContext spanContext = tracer.extractContext(Format.Builtin.TEXT_MAP, textMap);
     Iterator<Map.Entry<String, String>> iterator = spanContext.baggageItems().iterator();
     assertThat(iterator.hasNext(), is(true));
     Map.Entry<String, String> entry = iterator.next();
@@ -49,7 +49,7 @@ public class InstanaTracerTest {
   public void testHttpHeadersExtraction() throws Exception {
     MapTextMap textMap = new MapTextMap();
     textMap.put("foo", "bar");
-    SpanContext spanContext = tracer.extract(Format.Builtin.HTTP_HEADERS, textMap);
+    SpanContext spanContext = tracer.extractContext(Format.Builtin.HTTP_HEADERS, textMap);
     Iterator<Map.Entry<String, String>> iterator = spanContext.baggageItems().iterator();
     assertThat(iterator.hasNext(), is(true));
     Map.Entry<String, String> entry = iterator.next();
@@ -79,7 +79,7 @@ public class InstanaTracerTest {
     byteBuffer.put(value);
     byteBuffer.put(ByteBufferContext.NO_ENTRY);
     byteBuffer.flip();
-    SpanContext spanContext = tracer.extract(Format.Builtin.BINARY_EXTRACT,
+    SpanContext spanContext = tracer.extractContext(Format.Builtin.BINARY_EXTRACT,
         BinaryAdapters.extractionCarrier(byteBuffer));
     Iterator<Map.Entry<String, String>> iterator = spanContext.baggageItems().iterator();
     assertThat(iterator.hasNext(), is(true));
