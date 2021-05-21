@@ -1,3 +1,7 @@
+/*
+ * (c) Copyright IBM Corp. 2021
+ * (c) Copyright Instana Inc.
+ */
 package com.instana.opentracing;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -20,10 +24,10 @@ import io.opentracing.propagation.TextMap;
 
 public class InstanaTracerTest {
 
-  private InstanaTracer tracer = new InstanaTracer();
+  private final InstanaTracer tracer = new InstanaTracer();
 
   @Test
-  public void testTextMapExtraction() throws Exception {
+  public void testTextMapExtraction() {
     MapTextMap textMap = new MapTextMap();
     textMap.put("foo", "bar");
     SpanContext spanContext = tracer.extractContext(Format.Builtin.TEXT_MAP, textMap);
@@ -36,7 +40,7 @@ public class InstanaTracerTest {
   }
 
   @Test
-  public void testTextMapInjection() throws Exception {
+  public void testTextMapInjection() {
     MapTextMap textMap = new MapTextMap();
     MapSpanContext spanContext = new MapSpanContext();
     spanContext.map.put("foo", "bar");
@@ -46,7 +50,7 @@ public class InstanaTracerTest {
   }
 
   @Test
-  public void testHttpHeadersExtraction() throws Exception {
+  public void testHttpHeadersExtraction() {
     MapTextMap textMap = new MapTextMap();
     textMap.put("foo", "bar");
     SpanContext spanContext = tracer.extractContext(Format.Builtin.HTTP_HEADERS, textMap);
@@ -59,7 +63,7 @@ public class InstanaTracerTest {
   }
 
   @Test
-  public void testHttpHeadersInjection() throws Exception {
+  public void testHttpHeadersInjection() {
     MapTextMap textMap = new MapTextMap();
     MapSpanContext spanContext = new MapSpanContext();
     spanContext.map.put("foo", "bar");
@@ -69,7 +73,7 @@ public class InstanaTracerTest {
   }
 
   @Test
-  public void testByteBufferExtraction() throws Exception {
+  public void testByteBufferExtraction() {
     byte[] key = "foo".getBytes(ByteBufferContext.CHARSET), value = "quxbaz".getBytes(ByteBufferContext.CHARSET);
     ByteBuffer byteBuffer = ByteBuffer.allocate(2 + 2 * 4 + key.length + value.length);
     byteBuffer.put(ByteBufferContext.ENTRY);
@@ -90,7 +94,7 @@ public class InstanaTracerTest {
   }
 
   @Test
-  public void testByteBufferInjection() throws Exception {
+  public void testByteBufferInjection() {
     MapSpanContext spanContext = new MapSpanContext();
     spanContext.map.put("foo", "quxbaz");
     byte[] key = "foo".getBytes(ByteBufferContext.CHARSET), value = "quxbaz".getBytes(ByteBufferContext.CHARSET);
@@ -109,7 +113,7 @@ public class InstanaTracerTest {
   }
 
   @Test
-  public void testServiceLoader() throws Exception {
+  public void testServiceLoader() {
     Iterator<Tracer> services = ServiceLoader.load(Tracer.class).iterator();
     assertThat(services.hasNext(), is(true));
     assertThat(services.next(), instanceOf(InstanaTracer.class));
