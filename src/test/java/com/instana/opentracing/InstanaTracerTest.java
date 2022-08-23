@@ -3,8 +3,12 @@
  */
 package com.instana.opentracing;
 
+import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.emptyIterable;
+import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.core.Is.is;
 
 import java.nio.ByteBuffer;
@@ -12,11 +16,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.ServiceLoader;
-import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
 import org.junit.Test;
-
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.propagation.BinaryAdapters;
@@ -28,8 +29,33 @@ public class InstanaTracerTest {
   private final InstanaTracer tracer = new InstanaTracer();
 
   @Test
-  public void testTextMapExtraction() {
-    testExtraction(Format.Builtin.TEXT_MAP);
+  public void testTextMapExtractionIgnoresIrrelevantHeaders() {
+    testExtractionIgnoresIrrelevantHeaders(Format.Builtin.TEXT_MAP);
+  }
+
+  @Test
+  public void testHttpHeadersExtractionIgnoresIrrelevantHeaders() {
+    testExtractionIgnoresIrrelevantHeaders(Format.Builtin.HTTP_HEADERS);
+  }
+
+  @Test
+  public void testTextMapExtractionKeepsInstanaHeaders() {
+    testExtractionKeepsInstanaHeaders(Format.Builtin.TEXT_MAP);
+  }
+
+  @Test
+  public void testHttpHeadersExtractionKeepsInstanaHeaders() {
+    testExtractionKeepsInstanaHeaders(Format.Builtin.HTTP_HEADERS);
+  }
+
+  @Test
+  public void testTextMapExtractionIsCaseInsensitive() {
+    testExtractionIsCaseInsensitive(Format.Builtin.TEXT_MAP);
+  }
+
+  @Test
+  public void testHttpHeadersExtractionIsCaseInsensitive() {
+    testExtractionIsCaseInsensitive(Format.Builtin.HTTP_HEADERS);
   }
 
   @Test
@@ -38,20 +64,46 @@ public class InstanaTracerTest {
   }
 
   @Test
-  public void testHttpHeadersExtraction() {
-    testExtraction(Format.Builtin.HTTP_HEADERS);
-  }
-
-  @Test
   public void testHttpHeadersInjection() {
     testInjection(Format.Builtin.HTTP_HEADERS);
   }
 
-  private void testExtraction(Format<TextMap> format) {
+  private void testExtractionIgnoresIrrelevantHeaders(Format<TextMap> format) {
     MapTextMap textMap = new MapTextMap();
-    textMap.put("foo", "bar");
+    textMap.put("foo", "bar"); // irrelevant custom header
     SpanContext spanContext = tracer.extractContext(format, textMap);
-    assertThat(spanContext.baggageItems(), Matchers.contains(isEntry("foo", "bar")));
+    assertThat(spanContext.baggageItems(), emptyIterable());
+  }
+
+  private void testExtractionKeepsInstanaHeaders(Format<TextMap> format) {
+    MapTextMap textMap = new MapTextMap();
+    textMap.put("foo", "bar"); // irrelevant header
+    textMap.put("x-instana-t", "123");
+    textMap.put("x-instana-s", "456");
+    textMap.put("some", "thing"); // irrelevant header
+    textMap.put("x-instana-l", "789");
+    textMap.put("authorization", "bearer 000"); // irrelevant header
+    textMap.put("traceparent", "abc");
+    textMap.put("tracestate", "xyz");
+    SpanContext spanContext = tracer.extractContext(format, textMap);
+    assertThat(spanContext.baggageItems(), containsInAnyOrder(
+        isEntry("x-instana-t", "123"),
+        isEntry("x-instana-s", "456"),
+        isEntry("x-instana-l", "789"),
+        isEntry("traceparent", "abc"),
+        isEntry("tracestate", "xyz")));
+  }
+
+  private void testExtractionIsCaseInsensitive(Format<TextMap> format) {
+    MapTextMap textMap = new MapTextMap();
+    textMap.put("X-INSTANA-T", "123");
+    textMap.put("x-instana-s", "456");
+    textMap.put("X-Instana-L", "789");
+    SpanContext spanContext = tracer.extractContext(format, textMap);
+    assertThat(spanContext.baggageItems(), containsInAnyOrder(
+        isEntry("x-instana-t", "123"),
+        isEntry("x-instana-s", "456"),
+        isEntry("x-instana-l", "789")));
   }
 
   private void testInjection(Format<TextMap> format) {
@@ -150,8 +202,8 @@ public class InstanaTracerTest {
   }
 
   public static Matcher<Map.Entry<String, String>> isEntry(String key, String value) {
-    return CoreMatchers.allOf(
-        Matchers.hasProperty("key", is(key)),
-        Matchers.hasProperty("value", is(value)));
+    return allOf(
+        hasProperty("key", is(key)),
+        hasProperty("value", is(value)));
   }
 }
