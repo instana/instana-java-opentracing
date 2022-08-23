@@ -1,6 +1,5 @@
 /*
- * (c) Copyright IBM Corp. 2021
- * (c) Copyright Instana Inc.
+ * (c) Copyright IBM Corp. 2021 (c) Copyright Instana Inc.
  */
 package com.instana.opentracing;
 
@@ -28,32 +27,28 @@ public class InstanaTracerTest {
 
   @Test
   public void testTextMapExtraction() {
-    MapTextMap textMap = new MapTextMap();
-    textMap.put("foo", "bar");
-    SpanContext spanContext = tracer.extractContext(Format.Builtin.TEXT_MAP, textMap);
-    Iterator<Map.Entry<String, String>> iterator = spanContext.baggageItems().iterator();
-    assertThat(iterator.hasNext(), is(true));
-    Map.Entry<String, String> entry = iterator.next();
-    assertThat(entry.getKey(), is("foo"));
-    assertThat(entry.getValue(), is("bar"));
-    assertThat(iterator.hasNext(), is(false));
+    testExtraction(Format.Builtin.TEXT_MAP);
   }
 
   @Test
   public void testTextMapInjection() {
-    MapTextMap textMap = new MapTextMap();
-    MapSpanContext spanContext = new MapSpanContext();
-    spanContext.map.put("foo", "bar");
-    tracer.inject(spanContext, Format.Builtin.TEXT_MAP, textMap);
-    assertThat(textMap.map.size(), is(1));
-    assertThat(textMap.map.get("foo"), is("bar"));
+    testInjection(Format.Builtin.TEXT_MAP);
   }
 
   @Test
   public void testHttpHeadersExtraction() {
+    testExtraction(Format.Builtin.HTTP_HEADERS);
+  }
+
+  @Test
+  public void testHttpHeadersInjection() {
+    testInjection(Format.Builtin.HTTP_HEADERS);
+  }
+  
+  private void testExtraction(Format<TextMap> format) {
     MapTextMap textMap = new MapTextMap();
     textMap.put("foo", "bar");
-    SpanContext spanContext = tracer.extractContext(Format.Builtin.HTTP_HEADERS, textMap);
+    SpanContext spanContext = tracer.extractContext(format, textMap);
     Iterator<Map.Entry<String, String>> iterator = spanContext.baggageItems().iterator();
     assertThat(iterator.hasNext(), is(true));
     Map.Entry<String, String> entry = iterator.next();
@@ -62,19 +57,19 @@ public class InstanaTracerTest {
     assertThat(iterator.hasNext(), is(false));
   }
 
-  @Test
-  public void testHttpHeadersInjection() {
+  private void testInjection(Format<TextMap> format) {
     MapTextMap textMap = new MapTextMap();
     MapSpanContext spanContext = new MapSpanContext();
     spanContext.map.put("foo", "bar");
-    tracer.inject(spanContext, Format.Builtin.HTTP_HEADERS, textMap);
+    tracer.inject(spanContext, format, textMap);
     assertThat(textMap.map.size(), is(1));
     assertThat(textMap.map.get("foo"), is("bar"));
   }
 
   @Test
   public void testByteBufferExtraction() {
-    byte[] key = "foo".getBytes(ByteBufferContext.CHARSET), value = "quxbaz".getBytes(ByteBufferContext.CHARSET);
+    byte[] key = "foo".getBytes(ByteBufferContext.CHARSET),
+        value = "quxbaz".getBytes(ByteBufferContext.CHARSET);
     ByteBuffer byteBuffer = ByteBuffer.allocate(2 + 2 * 4 + key.length + value.length);
     byteBuffer.put(ByteBufferContext.ENTRY);
     byteBuffer.putInt(key.length);
@@ -97,9 +92,11 @@ public class InstanaTracerTest {
   public void testByteBufferInjection() {
     MapSpanContext spanContext = new MapSpanContext();
     spanContext.map.put("foo", "quxbaz");
-    byte[] key = "foo".getBytes(ByteBufferContext.CHARSET), value = "quxbaz".getBytes(ByteBufferContext.CHARSET);
+    byte[] key = "foo".getBytes(ByteBufferContext.CHARSET),
+        value = "quxbaz".getBytes(ByteBufferContext.CHARSET);
     ByteBuffer byteBuffer = ByteBuffer.allocate(2 + 2 * 4 + key.length + value.length);
-    tracer.inject(spanContext, Format.Builtin.BINARY_INJECT, BinaryAdapters.injectionCarrier(byteBuffer));
+    tracer.inject(spanContext, Format.Builtin.BINARY_INJECT,
+        BinaryAdapters.injectionCarrier(byteBuffer));
     byteBuffer.flip();
     assertThat(byteBuffer.get(), is((byte) 1));
     assertThat(byteBuffer.getInt(), is(key.length));
