@@ -12,7 +12,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.ServiceLoader;
-
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import io.opentracing.SpanContext;
@@ -44,17 +46,12 @@ public class InstanaTracerTest {
   public void testHttpHeadersInjection() {
     testInjection(Format.Builtin.HTTP_HEADERS);
   }
-  
+
   private void testExtraction(Format<TextMap> format) {
     MapTextMap textMap = new MapTextMap();
     textMap.put("foo", "bar");
     SpanContext spanContext = tracer.extractContext(format, textMap);
-    Iterator<Map.Entry<String, String>> iterator = spanContext.baggageItems().iterator();
-    assertThat(iterator.hasNext(), is(true));
-    Map.Entry<String, String> entry = iterator.next();
-    assertThat(entry.getKey(), is("foo"));
-    assertThat(entry.getValue(), is("bar"));
-    assertThat(iterator.hasNext(), is(false));
+    assertThat(spanContext.baggageItems(), Matchers.contains(isEntry("foo", "bar")));
   }
 
   private void testInjection(Format<TextMap> format) {
@@ -150,5 +147,11 @@ public class InstanaTracerTest {
     public void put(String key, String value) {
       map.put(key, value);
     }
+  }
+
+  public static Matcher<Map.Entry<String, String>> isEntry(String key, String value) {
+    return CoreMatchers.allOf(
+        Matchers.hasProperty("key", is(key)),
+        Matchers.hasProperty("value", is(value)));
   }
 }
