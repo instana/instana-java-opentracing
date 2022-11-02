@@ -142,7 +142,7 @@ public class InstanaTracer implements Tracer {
       if (!(carrier instanceof BinaryExtract)) {
         throw new IllegalArgumentException("Unsupported payload: " + carrier);
       }
-      spanContext = new ByteBufferContext((BinaryExtract) carrier);
+      spanContext = new InstanaSpanContext((BinaryExtract) carrier);
     } else {
       throw new IllegalArgumentException("Unsupported format: " + format);
     }

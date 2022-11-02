@@ -116,25 +116,61 @@ public class InstanaTracerTest {
   }
 
   @Test
-  public void testByteBufferExtraction() {
-    byte[] key = "foo".getBytes(ByteBufferContext.CHARSET),
-        value = "quxbaz".getBytes(ByteBufferContext.CHARSET);
-    ByteBuffer byteBuffer = ByteBuffer.allocate(2 + 2 * 4 + key.length + value.length);
-    byteBuffer.put(ByteBufferContext.ENTRY);
-    byteBuffer.putInt(key.length);
-    byteBuffer.putInt(value.length);
-    byteBuffer.put(key);
-    byteBuffer.put(value);
-    byteBuffer.put(ByteBufferContext.NO_ENTRY);
-    byteBuffer.flip();
+  public void testByteBufferExtractionKeepsInstanaHeaders() {
+    Map<String, String> headers = new HashMap<String, String>();
+    headers.put("foo", "bar"); // irrelevant header
+    headers.put("x-instana-t", "123");
+    headers.put("x-instana-s", "456");
+    headers.put("some", "thing"); // irrelevant header
+    headers.put("x-instana-l", "789");
+    headers.put("authorization", "bearer 000"); // irrelevant header
+    headers.put("traceparent", "abc");
+    headers.put("tracestate", "xyz");
+    ByteBuffer byteBuffer = encodeToByteBuffer(headers);
     SpanContext spanContext = tracer.extractContext(Format.Builtin.BINARY_EXTRACT,
         BinaryAdapters.extractionCarrier(byteBuffer));
-    Iterator<Map.Entry<String, String>> iterator = spanContext.baggageItems().iterator();
-    assertThat(iterator.hasNext(), is(true));
-    Map.Entry<String, String> entry = iterator.next();
-    assertThat(entry.getKey(), is("foo"));
-    assertThat(entry.getValue(), is("quxbaz"));
-    assertThat(iterator.hasNext(), is(false));
+    assertThat(spanContext.baggageItems(), containsInAnyOrder(
+        isEntry("x-instana-t", "123"),
+        isEntry("x-instana-s", "456"),
+        isEntry("x-instana-l", "789"),
+        isEntry("traceparent", "abc"),
+        isEntry("tracestate", "xyz")));
+  }
+  
+  private ByteBuffer encodeToByteBuffer(Map<String, String> map) {
+    int totalSize = byteBufferSize(map);
+    ByteBuffer byteBuffer = ByteBuffer.allocate(totalSize);
+    for (Map.Entry<String, String> entry : map.entrySet()) {
+      byteBuffer.put(ByteBufferContext.ENTRY);
+      byte[] key = entry.getKey().getBytes(InstanaSpanContext.CHARSET);
+      byte[] value = entry.getValue().getBytes(InstanaSpanContext.CHARSET);
+      byteBuffer.putInt(key.length);
+      byteBuffer.putInt(value.length);
+      byteBuffer.put(key);
+      byteBuffer.put(value);
+    }
+    byteBuffer.put(ByteBufferContext.NO_ENTRY);
+    byteBuffer.flip();
+    return byteBuffer;
+  }
+  
+  private int byteBufferSize(Map<String, String> map) {
+    int totalSize = 0;
+    for (Map.Entry<String, String> entry : map.entrySet()) {
+      // ENTRY
+      totalSize += 1;
+      // key length int = 4 bytes
+      totalSize += 4;
+      // value length int = 4 bytes
+      totalSize += 4;
+      // key payload bytes
+      totalSize += entry.getKey().getBytes(InstanaSpanContext.CHARSET).length;
+      // value payload bytes
+      totalSize += entry.getValue().getBytes(InstanaSpanContext.CHARSET).length;
+    }
+    // NO_ENTRY
+    totalSize += 1;
+    return totalSize;
   }
 
   @Test
