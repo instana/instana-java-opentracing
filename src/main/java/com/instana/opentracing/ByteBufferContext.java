@@ -4,10 +4,9 @@
  */
 package com.instana.opentracing;
 
-import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import io.opentracing.SpanContext;
 import io.opentracing.propagation.BinaryExtract;
@@ -18,22 +17,15 @@ class ByteBufferContext implements SpanContext {
 
   static final byte NO_ENTRY = 0, ENTRY = 1;
 
-  private final ByteBuffer byteBuffer;
+  private final Set<Map.Entry<String, String>> baggageItems;
 
   ByteBufferContext(BinaryExtract carrier) {
-    this.byteBuffer = carrier.extractionBuffer();
+    this.baggageItems = BaggageItemUtil.filterItems(carrier.extractionBuffer());
   }
 
   @Override
   public Iterable<Map.Entry<String, String>> baggageItems() {
-    Map<String, String> baggageItems = new HashMap<String, String>();
-    while (byteBuffer.get() == ENTRY) {
-      byte[] key = new byte[byteBuffer.getInt()], value = new byte[byteBuffer.getInt()];
-      byteBuffer.get(key);
-      byteBuffer.get(value);
-      baggageItems.put(new String(key, CHARSET), new String(value, CHARSET));
-    }
-    return baggageItems.entrySet();
+    return baggageItems;
   }
 
   @Override
