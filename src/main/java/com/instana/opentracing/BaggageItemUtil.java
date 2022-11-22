@@ -1,3 +1,7 @@
+/*
+ * (c) Copyright IBM Corp. 2022
+ * (c) Copyright Instana Inc.
+ */
 package com.instana.opentracing;
 
 import io.opentracing.propagation.TextMapExtract;

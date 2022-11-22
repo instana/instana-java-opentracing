@@ -4,7 +4,7 @@
 
     <groupId>com.instana</groupId>
     <artifactId>instana-java-opentracing</artifactId>
-    <version>0.33.2</version>
+    <version>0.33.3-SNAPSHOT</version>
 
     <name>Instana - Java Open Tracing</name>
     <description>Implementation of the opentracing.io API that is monitored by Instana.</description>
@@ -20,6 +20,11 @@
             <email>fabian.lange@instana.com</email>
             <url>http://www.instana.com</url>
         </developer>
+        <developer>
+            <name>Mary Reni Rajaian</name>
+            <email>mary.reni.rajaian@ibm.com</email>
+            <url>https://www.ibm.com/docs/en/instana-observability/current</url>
+        </developer>
     </developers>
     <licenses>
         <license>
@@ -32,7 +37,7 @@
         <connection>scm:git:git://github.com/instana/instana-java-opentracing.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/instana/instana-java-opentracing.git</developerConnection>
         <url>https://github.com/instana/instana-java-opentracing</url>
-        <tag>instana-java-opentracing-0.33.1</tag>
+        <tag>instana-java-opentracing-0.33.2</tag>
     </scm>
 
     <dependencies>
@@ -148,6 +153,17 @@
             </activation>
             <build>
                 <plugins>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.8</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>sonatype-nexus-staging</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
